@@ -15,3 +15,8 @@ const user=userModel.create({
 })
 return user
 };
+module.exports.addTokenToBlacklist = async (token) => {
+  const BlanklistToken = require("../models/blanklist.token");
+  const blacklistedToken = await BlanklistToken.create({ token });
+  return blacklistedToken;
+}
