@@ -1,26 +1,17 @@
- # Backend API Documentation
+# Backend API Documentation
 
 ---
 
-## Endpoints
+## User Endpoints
 
 ### Register User
 - **URL:** `/api/user/register`
 - **Method:** `POST`
 
 #### Description
-This endpoint registers a new user. It validates the provided data, hashes the password, creates the user record in the database, and returns a JSON Web Token (JWT) along with the user details.
+Registers a new user. Validates input, hashes the password, creates the user, and returns a JWT token with user details.
 
-#### Request Data
-The request body must be in JSON format and include the following fields:
-
-- **fullName** (object):  
-  - `firstName` (string, required): Must be at least 3 characters long.
-  - `lastName` (string, optional): Must be at least 3 characters long if provided.
-- **email** (string, required): Must be a valid email format.
-- **password** (string, required): Must be at least 6 characters long.
-
-Example:
+#### Request Body
 ```json
 {
   "fullName": {
@@ -32,15 +23,9 @@ Example:
 }
 ```
 
-#### Response
-
-##### Success
-- **HTTP Status Code:** `201 Created`
-- **Body:** Returns a JSON object containing:
-  - `token`: A JWT token for authentication.
-  - `user`: The created user data.
-
-Example:
+#### Success Response
+- **Status:** `201 Created`
+- **Body:**
 ```json
 {
   "token": "eyJhbGciOi...",
@@ -55,33 +40,9 @@ Example:
 }
 ```
 
-##### Errors
-
-- **Validation Failure:**
-  - **HTTP Status Code:** `400 Bad Request`
-  - **Body:** An object with an `errors` array detailing the validation issues.
-
-Example:
-```json
-{
-  "errors": [
-    {
-      "msg": "Invalid email",
-      "param": "email",
-      "location": "body"
-    },
-    {
-      "msg": "First name must be at least 3 characters long",
-      "param": "fullName.firstName",
-      "location": "body"
-    }
-  ]
-}
-```
-
-- **Server Errors:**
-  - **HTTP Status Code:** `500 Internal Server Error`
-  - **Description:** An unexpected error occurred during user registration.
+#### Error Responses
+- **400 Bad Request** (Validation errors)
+- **500 Internal Server Error**
 
 ---
 
@@ -90,15 +51,9 @@ Example:
 - **Method:** `POST`
 
 #### Description
-This endpoint logs in an existing user. It validates the provided email and password, checks if the user exists, verifies the password, and returns a JSON Web Token (JWT) for authentication.
+Logs in an existing user. Validates credentials and returns a JWT token with user details.
 
-#### Request Data
-The request body must be in JSON format and include the following fields:
-
-- **email** (string, required): Must be a valid email format.
-- **password** (string, required): Must be at least 6 characters long.
-
-Example:
+#### Request Body
 ```json
 {
   "email": "john.doe@example.com",
@@ -106,15 +61,9 @@ Example:
 }
 ```
 
-#### Response
-
-##### Success
-- **HTTP Status Code:** `200 OK`
-- **Body:** Returns a JSON object containing:
-  - `token`: A JWT token for authentication.
-  - `user`: The logged-in user data.
-
-Example:
+#### Success Response
+- **Status:** `200 OK`
+- **Body:**
 ```json
 {
   "token": "eyJhbGciOi...",
@@ -129,65 +78,24 @@ Example:
 }
 ```
 
-##### Errors
-
-- **Validation Failure:**
-  - **HTTP Status Code:** `400 Bad Request`
-  - **Body:** An object with an `errors` array detailing the validation issues.
-
-Example:
-```json
-{
-  "errors": [
-    {
-      "msg": "Invalid email",
-      "param": "email",
-      "location": "body"
-    },
-    {
-      "msg": "Password must be at least 6 characters long",
-      "param": "password",
-      "location": "body"
-    }
-  ]
-}
-```
-
-- **Authentication Failure:**
-  - **HTTP Status Code:** `401 Unauthorized`
-  - **Description:** Invalid email or password.
-
-Example:
-```json
-{
-  "error": "Invalid email or password"
-}
-```
-
-- **Server Errors:**
-  - **HTTP Status Code:** `500 Internal Server Error`
-  - **Description:** An unexpected error occurred during login.
+#### Error Responses
+- **400 Bad Request** (Validation or credential errors)
+- **401 Unauthorized** (Invalid email or password)
+- **500 Internal Server Error**
 
 ---
 
 ### Get User Profile
 - **URL:** `/api/user/profile`
 - **Method:** `GET`
+- **Auth:** Bearer JWT token (in cookie or `Authorization` header)
 
 #### Description
-This endpoint retrieves the profile information of the authenticated user. The user must be logged in and provide a valid JWT token.
+Retrieves the authenticated user's profile.
 
-#### Request Headers
-- **Authorization**: Bearer `<token>`  
-  The JWT token must be included in the `Authorization` header.
-
-#### Response
-
-##### Success
-- **HTTP Status Code:** `200 OK`
-- **Body:** Returns a JSON object containing the user's profile information.
-
-Example:
+#### Success Response
+- **Status:** `200 OK`
+- **Body:**
 ```json
 {
   "user": {
@@ -202,79 +110,32 @@ Example:
 }
 ```
 
-##### Errors
-
-- **Unauthorized:**
-  - **HTTP Status Code:** `401 Unauthorized`
-  - **Description:** The user is not authenticated or the token is invalid.
-
-Example:
-```json
-{
-  "message": "Unauthorized"
-}
-```
-
-- **User Not Found:**
-  - **HTTP Status Code:** `404 Not Found`
-  - **Description:** The user does not exist in the database.
-
-Example:
-```json
-{
-  "message": "User not found"
-}
-```
+#### Error Responses
+- **401 Unauthorized** (Missing/invalid/blacklisted token)
+- **404 Not Found** (User not found)
 
 ---
 
 ### Logout User
 - **URL:** `/api/user/logout`
 - **Method:** `POST`
+- **Auth:** Bearer JWT token (in cookie or `Authorization` header)
 
 #### Description
-This endpoint logs out the authenticated user by blacklisting their JWT token and clearing the authentication cookie.
+Logs out the user by blacklisting the JWT token and clearing the cookie.
 
-#### Request Headers
-- **Authorization**: Bearer `<token>`  
-  The JWT token must be included in the `Authorization` header.
-
-#### Response
-
-##### Success
-- **HTTP Status Code:** `200 OK`
-- **Body:** Returns a success message indicating the user has been logged out.
-
-Example:
+#### Success Response
+- **Status:** `200 OK`
+- **Body:**
 ```json
 {
   "message": "Logged out successfully"
 }
 ```
 
-##### Errors
-
-- **No Token Provided:**
-  - **HTTP Status Code:** `400 Bad Request`
-  - **Description:** No token was provided in the request.
-
-Example:
-```json
-{
-  "message": "No token provided"
-}
-```
-
-- **Unauthorized:**
-  - **HTTP Status Code:** `401 Unauthorized`
-  - **Description:** The token is invalid or blacklisted.
-
-Example:
-```json
-{
-  "message": "Unauthorized"
-}
-```
+#### Error Responses
+- **400 Bad Request** (No token provided)
+- **401 Unauthorized** (Invalid or blacklisted token)
 
 ---
 
@@ -285,23 +146,9 @@ Example:
 - **Method:** `POST`
 
 #### Description
-This endpoint registers a new captain. It validates the provided data, hashes the password, creates the captain record in the database, and returns a JSON Web Token (JWT) along with the captain details.
+Registers a new captain. Validates input, hashes the password, creates the captain, and returns a JWT token with captain details.
 
-#### Request Data
-The request body must be in JSON format and include the following fields:
-
-- **fullName** (object):  
-  - `firstName` (string, required): Must be at least 3 characters long.
-  - `lastName` (string, required): Must be at least 3 characters long.
-- **email** (string, required): Must be a valid email format.
-- **password** (string, required): Must be at least 6 characters long.
-- **vehicale** (object):
-  - `color` (string, required): Must be at least 3 characters long.
-  - `numberPlate` (string, required): Must be at least 3 characters long.
-  - `capacity` (number, required): Must be at least 1.
-  - `vehicaleType` (string, required): Must be one of `car`, `bike`, or `auto`.
-
-Example:
+#### Request Body
 ```json
 {
   "fullName": {
@@ -319,16 +166,9 @@ Example:
 }
 ```
 
-#### Response
-
-##### Success
-- **HTTP Status Code:** `201 Created`
-- **Body:** Returns a JSON object containing:
-  - `message`: Success message.
-  - `captain`: The created captain data.
-  - `token`: A JWT token for authentication.
-
-Example:
+#### Success Response
+- **Status:** `201 Created`
+- **Body:**
 ```json
 {
   "message": "Captain registered successfully",
@@ -352,39 +192,122 @@ Example:
 }
 ```
 
-##### Errors
-
-- **Validation Failure:**
-  - **HTTP Status Code:** `400 Bad Request`
-  - **Body:** An object with an `errors` array detailing the validation issues.
-
-Example:
-```json
-{
-  "errors": [
-    {
-      "msg": "First name must be at least 3 characters long",
-      "param": "fullName.firstName",
-      "location": "body"
-    }
-  ]
-}
-```
-
-- **Captain Already Exists:**
-  - **HTTP Status Code:** `400 Bad Request`
-  - **Body:** Message indicating the captain already exists.
-
-Example:
-```json
-{
-  "message": "Captain already exists"
-}
-```
-
-- **Server Errors:**
-  - **HTTP Status Code:** `500 Internal Server Error`
-  - **Description:** An unexpected error occurred during captain registration.
+#### Error Responses
+- **400 Bad Request** (Validation errors or captain already exists)
+- **500 Internal Server Error**
 
 ---
- 
+
+### Login Captain
+- **URL:** `/api/captain/login`
+- **Method:** `POST`
+
+#### Description
+Logs in an existing captain. Validates credentials and returns a JWT token with captain details.
+
+#### Request Body
+```json
+{
+  "email": "jane.smith@example.com",
+  "password": "securepass"
+}
+```
+
+#### Success Response
+- **Status:** `200 OK`
+- **Body:**
+```json
+{
+  "message": "Captain logged in successfully",
+  "captain": {
+    "_id": "618f1f1f1f...",
+    "fullName": {
+      "firstName": "Jane",
+      "lastName": "Smith"
+    },
+    "email": "jane.smith@example.com",
+    "vehicale": {
+      "color": "Red",
+      "numberPlate": "XYZ123",
+      "capacity": 4,
+      "vehicaleType": "car"
+    },
+    "status": "inactive",
+    "socketId": null
+  },
+  "token": "eyJhbGciOi..."
+}
+```
+
+#### Error Responses
+- **400 Bad Request** (Validation or credential errors)
+- **401 Unauthorized** (Invalid email or password)
+- **500 Internal Server Error**
+
+---
+
+### Get Captain Profile
+- **URL:** `/api/captain/profile`
+- **Method:** `GET`
+- **Auth:** Bearer JWT token (in cookie or `Authorization` header)
+
+#### Description
+Retrieves the authenticated captain's profile.
+
+#### Success Response
+- **Status:** `200 OK`
+- **Body:**
+```json
+{
+  "captain": {
+    "_id": "618f1f1f1f...",
+    "fullName": {
+      "firstName": "Jane",
+      "lastName": "Smith"
+    },
+    "email": "jane.smith@example.com",
+    "vehicale": {
+      "color": "Red",
+      "numberPlate": "XYZ123",
+      "capacity": 4,
+      "vehicaleType": "car"
+    },
+    "status": "inactive",
+    "socketId": null
+  }
+}
+```
+
+#### Error Responses
+- **401 Unauthorized** (Missing/invalid/blacklisted token)
+- **404 Not Found** (Captain not found)
+
+---
+
+### Logout Captain
+- **URL:** `/api/captain/logout`
+- **Method:** `POST`
+- **Auth:** Bearer JWT token (in cookie or `Authorization` header)
+
+#### Description
+Logs out the captain by blacklisting the JWT token and clearing the cookie.
+
+#### Success Response
+- **Status:** `200 OK`
+- **Body:**
+```json
+{
+  "message": "Captain logged out successfully"
+}
+```
+
+#### Error Responses
+- **401 Unauthorized** (No token provided, invalid, or blacklisted token)
+
+---
+
+## Notes
+
+- All endpoints that require authentication expect the JWT token in the `Authorization` header as `Bearer <token>` or in the `token` cookie.
+- Validation errors are returned as an array in the `errors` field.
+- Blacklisted tokens are stored in the `BlanklistToken` collection and checked on each authenticated request.
