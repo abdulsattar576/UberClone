@@ -1,20 +1,32 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
- 
+import { Link ,useNavigate} from "react-router-dom";
+
+ import { userDataContext } from "../context/UserContext";
+ import { useContext } from "react";
+import axios from "axios";
 const UserLogin = () => {
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("")
   const [userData, setuserData] = useState({})
-  const submitHandler = (e) => {
-    userData({
+  const { user, setuser } = useContext(userDataContext);
+const navigate = useNavigate();
+  const submitHandler = async(e) => {
+     e.preventDefault();
+    const user={
       email: email,
-      password: password,})
-    e.preventDefault();
-    setemail("");
-    setpassword("");
-  }
-  return (
-    <div className="p-7 flex flex-col justify-between h-screen">
+      password: password}
+      const response= await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/login`, user);
+   if(response.status === 200){
+      const data = response.data;
+       localStorage.setItem('token', data.token);
+      setuser(data.user);
+      navigate('/home');
+      setemail("");
+      setpassword("");
+    }
+  };
+    return (
+      <div className="p-7 flex flex-col justify-between h-screen">
       <div>
         <h1 className="text-4xl text-black font-bold mb-4">Uber</h1>
       <form onSubmit={submitHandler}>
